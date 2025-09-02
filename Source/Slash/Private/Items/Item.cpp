@@ -3,6 +3,7 @@
 
 #include "Items/Item.h"
 #include "Slash/DebugMacros.h"
+#include "Components/SphereComponent.h"
 
 #define THIRTY 30
 
@@ -14,6 +15,9 @@ AItem::AItem()
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	RootComponent = ItemMesh;
+
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -21,20 +25,8 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	int32 AvgInt = Avg<int32>(1, 3);
-	UE_LOG(LogTemp, Warning, TEXT("Avg of 1 and 3: %d"), AvgInt);
-
-	float AvgFloat = Avg<float>(3.45f, 7.86f);
-	UE_LOG(LogTemp, Warning, TEXT("Avg of 1 and 3: %f"), AvgFloat);
-	
-	// SetActorLocation(FVector(0.f, 0.f, 50.f));
-	// SetActorRotation(FRotator(0.f, 45.f, 0.f));
-
-	// FVector Location = GetActorLocation();
-	// FVector ForwardVector = GetActorForwardVector();
-	//
-	// DRAW_SPHERE(Location);
-	// DRAW_VECTOR(Location, Location + ForwardVector * 100.f);
+	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereOverlap);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereOverlapEnd);
 }
 
 float AItem::TransformedSin()
@@ -45,6 +37,26 @@ float AItem::TransformedSin()
 float AItem::TransformedCos()
 {
 	return Amplitude * FMath::Cos(RunningTime * TimeConstant);
+}
+
+void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	const FString OtherActorName = OtherActor->GetName();
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red, FString::Printf(TEXT("%s entered overlap"), *OtherActorName));
+	}
+}
+
+void AItem::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	const FString OtherActorName = OtherActor->GetName();
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Green, FString::Printf(TEXT("%s ended overlap"), *OtherActorName));
+	}
 }
 
 // Called every frame
