@@ -14,6 +14,8 @@ class UCameraComponent;
 class USpringArmComponent;
 class UGroomComponent;
 class AItem;
+class UAnimMontage;
+class AWeapon;
 
 UCLASS()
 class SLASH_API ASlashCharacter : public ACharacter
@@ -28,27 +30,47 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/**
+	 * Inputs
+	 */
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* SlashContext;
-
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* MovementAction;
-
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* LookAction;
-
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* JumpAction;
-
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* EquipAction;
-
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* AttackAction;
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Equip(const FInputActionValue& Value);
+	void Attack(const FInputActionValue& Value);
+	
+	/**
+	 * Play animation montages
+	 */
+	void PlayAttackMontage();
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+	bool CanAttack();
+	void PlayEquipMontage(FName SectionName);
+	bool CanDisarm();
+	bool CanArm();
+	UFUNCTION(BlueprintCallable)
+	void Disarm();
+	UFUNCTION(BlueprintCallable)
+	void Arm();
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
 
 private:
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 	
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
@@ -64,6 +86,18 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly, Category = Item)
 	AItem* OverlappingItem;
+	
+	UPROPERTY(VisibleAnywhere, Category = Weapon)
+	AWeapon* EquippedWeapon;
+	
+	/**
+	 * Animation montages
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* AttackMontage;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* EquipMontage;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
