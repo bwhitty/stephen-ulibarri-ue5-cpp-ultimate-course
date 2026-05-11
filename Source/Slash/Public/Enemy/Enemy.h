@@ -7,6 +7,7 @@
 #include "Interfaces/HitInterface.h"
 #include "Enemy.generated.h"
 
+class UAttributeComponent;
 class UAnimMontage;
 
 UCLASS()
@@ -18,6 +19,9 @@ public:
 	AEnemy();
 	
 private:
+	UPROPERTY(VisibleAnywhere)
+	UAttributeComponent* Attributes;
+	
 	/**
 	 * Animation montages
 	 */
